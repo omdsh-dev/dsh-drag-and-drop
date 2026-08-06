@@ -28,8 +28,12 @@ export async function locateDroppedFile(file: File, workspaces: IWorkspaces, cur
 }
 
 export async function locateDroppedDirectory(directory: DroppedDirectory, workspaces: IWorkspaces, currentWorkspacePath: string | undefined): Promise<LocateResponse> {
-  const meta = { kind: 'directory' as const, name: directory.name, structure: await readDirectoryStructure(directory.entry) }
-  const result = await request({ phase: 'metadata', file: meta, ...workspaceContext(workspaces, currentWorkspacePath) })
+  const initial = { kind: 'directory' as const, name: directory.name }
+  let result = await request({ phase: 'metadata', file: initial, ...workspaceContext(workspaces, currentWorkspacePath) })
+  if (result.status !== 'directory-structure-required') return result
+
+  const meta = { ...initial, structure: await readDirectoryStructure(directory.entry) }
+  result = await request({ phase: 'directory-structure', file: meta, candidates: result.candidates })
   if (result.status !== 'directory-content-required') return result
   return request({
     phase: 'directory-content', file: meta, candidates: result.candidates,

@@ -1,5 +1,5 @@
 import { homedir } from 'node:os'
-import { basename, join, normalize } from 'node:path'
+import { basename, join, normalize, resolve, sep } from 'node:path'
 import { readdir, stat } from 'node:fs/promises'
 import { directoryContentDigest, directoryStructureDigest, selectDirectorySamplePaths } from './directory.ts'
 import { nodeDirectoryContentDigest, nodeDirectoryStructureDigest } from './directory-node.ts'
@@ -57,33 +57,44 @@ async function validateCandidates(item: DroppedEntryMeta, paths: readonly string
     : a.path.localeCompare(b.path))
 }
 
-async function searchRoots(item: DroppedEntryMeta, roots: readonly string[]): Promise<Candidate[]> {
+async function directCandidates(item: DroppedEntryMeta, roots: readonly string[]): Promise<Candidate[]> {
+  const paths = await Promise.all(roots.map(root => directCandidate(root, item.name, item.kind)))
+  return validateCandidates(item, paths.filter(path => path !== undefined))
+}
+
+async function recursiveCandidates(item: DroppedEntryMeta, roots: readonly string[]): Promise<Candidate[]> {
   const paths: string[] = []
-  for (const root of roots) {
-    const direct = await directCandidate(root, item.name, item.kind)
-    if (direct !== undefined) paths.push(direct)
-    paths.push(...await walkByName(root, item.name, item.kind))
-  }
+  for (const root of roots) paths.push(...await walkByName(root, item.name, item.kind))
   return validateCandidates(item, paths)
+}
+
+function pathsInside(paths: readonly string[], roots: readonly string[]): string[] {
+  const canonicalRoots = roots.map(root => resolve(root))
+  return paths.filter(path => {
+    const candidate = resolve(path)
+    return canonicalRoots.some(root => candidate === root || candidate.startsWith(`${root}${sep}`))
+  })
 }
 
 async function metadataCandidates(item: DroppedEntryMeta, request: LocateRequest): Promise<Candidate[]> {
   const current = request.currentWorkspacePath
   const workspaceRoots = [...new Set(request.workspacePaths ?? [])].filter(root => typeof root === 'string' && root !== '')
-  if (current !== undefined) {
-    const candidates = await searchRoots(item, [current])
-    if (candidates.length > 0) return candidates
-  }
   const otherWorkspaces = workspaceRoots.filter(root => root !== current)
-  if (otherWorkspaces.length > 0) {
-    const candidates = await searchRoots(item, otherWorkspaces)
-    if (candidates.length > 0) return candidates
+  const commonRoots = [join(homedir(), 'Desktop'), join(homedir(), 'Documents'), join(homedir(), 'Downloads')]
+
+  const rootGroups = [current === undefined ? [] : [current], otherWorkspaces, commonRoots]
+  const indexedPaths = await indexedSearch(item.name)
+  for (const roots of rootGroups) {
+    const direct = await directCandidates(item, roots)
+    if (direct.length > 0) return direct
+    const indexed = await validateCandidates(item, pathsInside(indexedPaths, roots))
+    if (indexed.length > 0) return indexed
+    const recursive = await recursiveCandidates(item, roots)
+    if (recursive.length > 0) return recursive
   }
-  const common = await searchRoots(item, [join(homedir(), 'Desktop'), join(homedir(), 'Documents'), join(homedir(), 'Downloads')])
-  if (common.length > 0) return common
-  const indexed = await validateCandidates(item, await indexedSearch(item.name))
-  if (indexed.length > 0) return indexed
-  return searchRoots(item, await broadSearchRoots())
+  const globalIndexed = await validateCandidates(item, indexedPaths)
+  if (globalIndexed.length > 0) return globalIndexed
+  return recursiveCandidates(item, await broadSearchRoots())
 }
 
 async function matchingFileDigest(candidates: readonly string[], digest: string, phase: 'sample' | 'full', file: DroppedFileMeta): Promise<string[]> {
@@ -97,10 +108,11 @@ async function matchingFileDigest(candidates: readonly string[], digest: string,
   return matched
 }
 
-async function locateDirectory(request: LocateRequest): Promise<LocateResponse> {
-  if (request.file.kind !== 'directory') return { status: 'error', message: 'directory phase requires directory metadata' }
-  const candidates = request.candidates ?? (await metadataCandidates(request.file, request)).map(candidate => candidate.path)
-  if (candidates.length === 0) return { status: 'not-found' }
+async function locateDirectoryStructure(request: LocateRequest): Promise<LocateResponse> {
+  if (request.file.kind !== 'directory' || request.file.structure === undefined || request.candidates === undefined) {
+    return { status: 'error', message: 'directory structure phase requires candidates and structure' }
+  }
+  const candidates = request.candidates
   const expected = directoryStructureDigest(request.file.structure)
   const matched: string[] = []
   let samplePaths = selectDirectorySamplePaths(request.file.structure.entries)
@@ -123,7 +135,13 @@ export async function locate(request: LocateRequest): Promise<LocateResponse> {
   }
 
   if (request.file.kind === 'directory') {
-    if (request.phase === 'metadata' || request.phase === 'directory-structure') return locateDirectory(request)
+    if (request.phase === 'metadata') {
+      const candidates = await metadataCandidates(request.file, request)
+      if (candidates.length === 0) return { status: 'not-found' }
+      if (candidates.length === 1) return { status: 'found', path: candidates[0].path }
+      return { status: 'directory-structure-required', candidates: candidates.map(candidate => candidate.path) }
+    }
+    if (request.phase === 'directory-structure') return locateDirectoryStructure(request)
     if (request.phase !== 'directory-content' || request.candidates === undefined || request.directorySamples === undefined) {
       return { status: 'error', message: 'invalid directory phase' }
     }

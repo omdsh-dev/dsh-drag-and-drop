@@ -14,7 +14,7 @@ export interface DroppedFileMeta {
 export interface DroppedDirectoryMeta {
   readonly kind: 'directory'
   readonly name: string
-  readonly structure: DirectoryStructure
+  readonly structure?: DirectoryStructure
 }
 
 export type DroppedEntryMeta = DroppedFileMeta | DroppedDirectoryMeta
@@ -33,6 +33,7 @@ export type LocateResponse =
   | { readonly status: 'found'; readonly path: string }
   | { readonly status: 'sample-required'; readonly candidates: readonly string[] }
   | { readonly status: 'full-required'; readonly candidates: readonly string[] }
+  | { readonly status: 'directory-structure-required'; readonly candidates: readonly string[] }
   | { readonly status: 'directory-content-required'; readonly candidates: readonly string[]; readonly paths: readonly string[] }
   | { readonly status: 'choose'; readonly candidates: readonly string[] }
   | { readonly status: 'not-found' }

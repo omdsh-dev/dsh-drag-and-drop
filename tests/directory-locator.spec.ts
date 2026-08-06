@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, join } from 'node:path'
+import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { readNodeDirectoryStructure } from '../src/directory-node.ts'
 import { locate } from '../src/locator.ts'
@@ -21,23 +21,35 @@ async function directory(root: string, parent: string, content: string): Promise
   return path
 }
 
+async function metadata(root: string) {
+  return locate({ phase: 'metadata', file: { kind: 'directory', name: 'project' }, workspacePaths: [root], currentWorkspacePath: root })
+}
+
 describe('directory locator', () => {
-  it('finds the only candidate after validating its structure', async () => {
+  it('returns a direct unique candidate without receiving directory structure', async () => {
     const root = await workspace()
-    const path = await directory(root, 'a', 'hello')
-    await expect(locate({
-      phase: 'metadata', file: { kind: 'directory', name: basename(path), structure: await readNodeDirectoryStructure(path) },
-      workspacePaths: [root], currentWorkspacePath: root,
-    })).resolves.toEqual({ status: 'found', path })
+    const path = join(root, 'project')
+    await mkdir(path)
+    await expect(metadata(root)).resolves.toEqual({ status: 'found', path })
   })
 
-  it('filters same-name directories by structure', async () => {
+  it('returns the only recursive candidate without receiving directory structure', async () => {
+    const root = await workspace()
+    const path = await directory(root, 'a', 'hello')
+    await expect(metadata(root)).resolves.toEqual({ status: 'found', path })
+  })
+
+  it('requests structure only for multiple candidates and filters by it', async () => {
     const root = await workspace()
     const first = await directory(root, 'a', 'hello')
-    await directory(root, 'b', 'different-size')
+    const second = await directory(root, 'b', 'different-size')
+    const initial = await metadata(root)
+    expect(initial).toEqual({ status: 'directory-structure-required', candidates: [first, second] })
+    if (initial.status !== 'directory-structure-required') return
     await expect(locate({
-      phase: 'metadata', file: { kind: 'directory', name: 'project', structure: await readNodeDirectoryStructure(first) },
-      workspacePaths: [root], currentWorkspacePath: root,
+      phase: 'directory-structure',
+      file: { kind: 'directory', name: 'project', structure: await readNodeDirectoryStructure(first) },
+      candidates: initial.candidates,
     })).resolves.toEqual({ status: 'found', path: first })
   })
 
@@ -45,8 +57,10 @@ describe('directory locator', () => {
     const root = await workspace()
     const first = await directory(root, 'a', 'hello')
     const second = await directory(root, 'b', 'world')
+    const initial = await metadata(root)
+    if (initial.status !== 'directory-structure-required') throw new Error('expected multiple candidates')
     const file = { kind: 'directory' as const, name: 'project', structure: await readNodeDirectoryStructure(first) }
-    const result = await locate({ phase: 'metadata', file, workspacePaths: [root], currentWorkspacePath: root })
+    const result = await locate({ phase: 'directory-structure', file, candidates: initial.candidates })
     expect(result.status).toBe('directory-content-required')
     if (result.status !== 'directory-content-required') return
     const { sampleFingerprint } = await import('../src/fingerprint.ts')
@@ -55,7 +69,6 @@ describe('directory locator', () => {
     })))
     await expect(locate({ phase: 'directory-content', file, candidates: result.candidates, directorySamples: samples }))
       .resolves.toEqual({ status: 'found', path: first })
-
     await writeFile(join(second, 'entry.txt'), 'hello')
     await expect(locate({ phase: 'directory-content', file, candidates: result.candidates, directorySamples: samples }))
       .resolves.toEqual({ status: 'choose', candidates: [first, second] })
