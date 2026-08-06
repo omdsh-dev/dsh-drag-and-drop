@@ -1,7 +1,7 @@
 import { SAMPLE_BYTES, type DroppedFileMeta } from '../protocol.ts'
 
 export function droppedFileMeta(file: File): DroppedFileMeta {
-  return { name: file.name, size: file.size, lastModified: file.lastModified }
+  return { kind: 'file', name: file.name, size: file.size, lastModified: file.lastModified }
 }
 
 function sampleRanges(size: number): readonly { start: number; end: number }[] {

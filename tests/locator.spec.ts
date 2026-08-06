@@ -16,7 +16,7 @@ async function root(): Promise<string> {
 
 async function metadata(path: string) {
   const info = await stat(path)
-  return { name: path.split('/').at(-1)!, size: info.size, lastModified: info.mtimeMs }
+  return { kind: 'file' as const, name: path.split('/').at(-1)!, size: info.size, lastModified: info.mtimeMs }
 }
 
 describe('locate', () => {
