@@ -1,0 +1,45 @@
+{
+  "name": "@dsh-external/dsh-drag-and-drop",
+  "version": "0.1.0",
+  "description": "Drag local files into DSH Web UI and insert their original filesystem paths without uploading or copying them",
+  "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dshClient": {
+    "platform": "web",
+    "inject": [
+      "@deepseek-ai/dsh-client-runtime",
+      "@deepseek-ai/dsh-client-ui-conversation"
+    ]
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsh-external/dsh-drag-and-drop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dsh-external/dsh-drag-and-drop/issues"
+  },
+  "homepage": "https://github.com/dsh-external/dsh-drag-and-drop#readme",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "check": "tsc -p tsconfig.json --noEmit --pretty false"
+  }
+}
