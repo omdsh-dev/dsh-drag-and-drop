@@ -4,6 +4,7 @@ import { choosePath } from './chooser.ts'
 import { droppedItems } from './drop-items.ts'
 import { locateDroppedDirectory, locateDroppedFile } from './locator.ts'
 import { pathsFromDrop } from './paths.ts'
+import { createFileDropToast, type FileDropToast } from './toast.ts'
 
 export { pathsFromDrop, pathsFromUriList } from './paths.ts'
 
@@ -90,7 +91,7 @@ function appendPaths(input: SessionInput, paths: readonly string[]): void {
   input.setDraft(draft === '' ? text : `${draft}\n${text}`)
 }
 
-async function resolveDrop(ctx: ClientContext, dataTransfer: DataTransfer): Promise<void> {
+async function resolveDrop(ctx: ClientContext, dataTransfer: DataTransfer, toast: FileDropToast): Promise<void> {
   const input = currentInput(ctx)
   if (input === undefined) return
   const direct = pathsFromDrop(dataTransfer)
@@ -124,12 +125,13 @@ async function resolveDrop(ctx: ClientContext, dataTransfer: DataTransfer): Prom
     }
   }
   if (found.length > 0) appendPaths(input, found)
-  if (failures.length > 0) input.notify('error', `未能定位原始路径：${failures.join('、')}`)
+  if (failures.length > 0) toast.showError(`未能定位原始路径：${failures.join('、')}`)
 }
 
 export function apply(ctx: ClientContext): void {
   let dragDepth = 0
   const overlay = createOverlay()
+  const toast = createFileDropToast()
   const onDragEnter = (event: DragEvent): void => {
     if (!hasFilePayload(event)) return
     dragDepth += 1
@@ -151,7 +153,7 @@ export function apply(ctx: ClientContext): void {
     event.preventDefault()
     dragDepth = 0
     overlay.setActive(false)
-    if (event.dataTransfer !== null) void resolveDrop(ctx, event.dataTransfer)
+    if (event.dataTransfer !== null) void resolveDrop(ctx, event.dataTransfer, toast)
   }
   window.addEventListener('dragenter', onDragEnter)
   window.addEventListener('dragover', onDragOver)
@@ -163,5 +165,6 @@ export function apply(ctx: ClientContext): void {
     window.removeEventListener('dragleave', onDragLeave)
     window.removeEventListener('drop', onDrop)
     overlay.dispose()
+    toast.dispose()
   }, 'file-drop: global drag listeners')
 }
