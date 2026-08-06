@@ -5,7 +5,7 @@ import { FILE_DROP_ROUTE, type LocateRequest, type LocateResponse } from './prot
 
 export const inject = ['httpServer']
 
-const MAX_BODY_BYTES = 256 * 1024
+export const MAX_BODY_BYTES = 4 * 1024 * 1024
 
 async function readJson(req: IncomingMessage): Promise<LocateRequest> {
   const chunks: Buffer[] = []

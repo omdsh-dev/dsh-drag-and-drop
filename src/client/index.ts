@@ -1,7 +1,7 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { IConversation } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { choosePath } from './chooser.ts'
-import { droppedDirectories } from './directory.ts'
+import { droppedItems } from './drop-items.ts'
 import { locateDroppedDirectory, locateDroppedFile } from './locator.ts'
 import { pathsFromDrop } from './paths.ts'
 
@@ -99,36 +99,32 @@ async function resolveDrop(ctx: ClientContext, dataTransfer: DataTransfer): Prom
     return
   }
 
-  const directories = droppedDirectories(dataTransfer)
-  const directoryNames = new Set(directories.map(directory => directory.name))
+  const { directories, files } = droppedItems(dataTransfer)
   const entries = [
     ...directories.map(directory => ({ name: directory.name, locate: () => locateDroppedDirectory(directory, ctx.workspaces, currentWorkspacePath(ctx)) })),
-    ...[...dataTransfer.files].filter(file => !directoryNames.has(file.name) || file.size > 0)
-      .map(file => ({ name: file.name, locate: () => locateDroppedFile(file, ctx.workspaces, currentWorkspacePath(ctx)) })),
+    ...files.map(file => ({ name: file.name, locate: () => locateDroppedFile(file, ctx.workspaces, currentWorkspacePath(ctx)) })),
   ]
   const found: string[] = []
-  const missed: string[] = []
+  const failures: string[] = []
   for (const entry of entries) {
     try {
       const result = await entry.locate()
       if (result.status === 'found') found.push(result.path)
       else if (result.status === 'choose') {
         const selected = await choosePath(entry.name, result.candidates)
-        if (selected === undefined) missed.push(entry.name)
+        if (selected === undefined) failures.push(entry.name)
         else found.push(selected)
       } else if (result.status === 'error') {
-        input.notify('error', `定位 ${entry.name} 失败：${result.message}`)
-        missed.push(entry.name)
+        failures.push(`${entry.name}（${result.message}）`)
       } else {
-        missed.push(entry.name)
+        failures.push(entry.name)
       }
     } catch (error) {
-      input.notify('error', `定位 ${entry.name} 失败：${error instanceof Error ? error.message : String(error)}`)
-      missed.push(entry.name)
+      failures.push(`${entry.name}（${error instanceof Error ? error.message : String(error)}）`)
     }
   }
   if (found.length > 0) appendPaths(input, found)
-  if (missed.length > 0) input.notify('error', `未能定位原始路径：${missed.join('、')}`)
+  if (failures.length > 0) input.notify('error', `未能定位原始路径：${failures.join('、')}`)
 }
 
 export function apply(ctx: ClientContext): void {

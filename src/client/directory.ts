@@ -10,6 +10,7 @@ interface FileSystemEntryLike {
 }
 
 export interface DroppedDirectory {
+  readonly itemIndex: number
   readonly name: string
   readonly entry: FileSystemEntryLike
 }
@@ -28,11 +29,11 @@ async function readChildren(entry: FileSystemEntryLike): Promise<FileSystemEntry
   }
 }
 
-export function droppedDirectories(dataTransfer: DataTransfer): DroppedDirectory[] {
+export function droppedDirectories(dataTransfer: Pick<DataTransfer, 'items'>): DroppedDirectory[] {
   const directories: DroppedDirectory[] = []
-  for (const item of dataTransfer.items) {
+  for (const [itemIndex, item] of [...dataTransfer.items].entries()) {
     const entry = item.webkitGetAsEntry?.() as FileSystemEntryLike | null | undefined
-    if (entry?.isDirectory === true) directories.push({ name: entry.name, entry })
+    if (entry?.isDirectory === true) directories.push({ itemIndex, name: entry.name, entry })
   }
   return directories
 }
