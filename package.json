@@ -26,7 +26,8 @@
   },
   "files": [
     "lib",
-    "src"
+    "src",
+    "cordis.patch.yml"
   ],
   "license": "BSD-3-Clause",
   "repository": {
@@ -41,5 +42,10 @@
     "build": "node scripts/build.mjs",
     "test": "vitest run",
     "check": "tsc -p tsconfig.json --noEmit --pretty false"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
   }
 }

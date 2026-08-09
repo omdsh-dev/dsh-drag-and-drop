@@ -25,39 +25,29 @@ DeepSeek Harness Web UI 插件：把文件拖入页面任意位置，将文件�
 
 ## 安装
 
-需要 DSH 源码环境（`scripts/install.sh` 安装的 checkout，默认位于 `~/.dsh/source/current`）。下面将它记作 `$DSH`。
+本插件是 DSH **bundle**（`package.json` 声明 `dsh.bundle` + `dshClient`），通过
+标准的 `dsh plugin` 机制安装到 profile，**无需修改 DSH 源码、无需 `config.yaml`**。
 
-### 1. 安装插件
+> 旧版 README 的 `pnpm --filter @deepseek-ai/dsh add ...` + `~/.dsh/config.yaml`
+> 方式已过时：官方 profile/bundle 模型下 `$DSH_HOME/config.yaml` 不再被读取。
+
+### 1. 安装到 profile（标准做法）
+
+装进官方 `web` profile（自带 `dsh-base` + `dsh-web-app` 两层，插件需要
+`httpServer` 由 web-app 提供）：
 
 ```sh
-cd $DSH
-pnpm --filter @deepseek-ai/dsh add "github:dsh-external/dsh-drag-and-drop"
+dsh plugin --profile web add github:dsh-external/dsh-drag-and-drop
+# 或本地 checkout：
+dsh plugin --profile web add /path/to/dsh-drag-and-drop
 ```
 
-也可以先 clone，再通过本地路径安装：
+仓库包含构建产物（`lib/` 已提交），安装后无需另外构建。
 
-```sh
-cd $DSH
-pnpm --filter @deepseek-ai/dsh add "file:/path/to/dsh-drag-and-drop"
-```
+### 2. 重启 Web UI
 
-仓库包含构建产物，安装后无需另外构建。
-
-### 2. 启用插件
-
-编辑 `~/.dsh/config.yaml`，加入：
-
-```yaml
-- insert:
-    - id: drag-and-drop
-      name: '@dsh-external/dsh-drag-and-drop'
-```
-
-这是个人配置覆盖层，不需要修改 DSH 仓库中的文件。
-
-### 3. 重启 Web UI
-
-使用你当前启动 DSH Web UI 的方式重新启动服务，然后刷新浏览器页面。
+使用你当前启动 DSH Web UI 的方式重新启动服务，然后刷新浏览器页面。插件会出现在
+浏览器引导图（`__DSH_BOOT__`）中，其 client bundle 自动加载。
 
 ## 使用
 
@@ -152,11 +142,10 @@ Windows 在系统索引没有返回候选时，还会搜索用户目录和可用
 ## 卸载
 
 ```sh
-cd $DSH
-pnpm --filter @deepseek-ai/dsh remove @dsh-external/dsh-drag-and-drop
+dsh plugin --profile web remove @dsh-external/dsh-drag-and-drop
 ```
 
-然后删除 `~/.dsh/config.yaml` 中对应的插件配置，并按你当前的方式重启 DSH Web UI。
+然后按你当前的方式重启 DSH Web UI。
 
 ## 开发
 
