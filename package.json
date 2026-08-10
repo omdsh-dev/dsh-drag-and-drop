@@ -17,13 +17,6 @@
     "./client": "./lib/client.js",
     "./package.json": "./package.json"
   },
-  "dshClient": {
-    "platform": "web",
-    "inject": [
-      "@deepseek-ai/dsh-client-runtime",
-      "@deepseek-ai/dsh-client-ui-conversation"
-    ]
-  },
   "files": [
     "lib",
     "src",
@@ -46,6 +39,13 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
     }
   }
 }
