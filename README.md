@@ -25,7 +25,7 @@ DeepSeek Harness Web UI 插件：把文件拖入页面任意位置，将文件�
 
 ## 安装
 
-本插件是 DSH **bundle**（`package.json` 声明 `dsh.bundle` + `dshClient`），通过
+本插件是 DSH **bundle**（`package.json` 声明 `dsh.bundle` + `dsh.client`），通过
 标准的 `dsh plugin` 机制安装到 profile，**无需修改 DSH 源码、无需 `config.yaml`**。
 
 > 旧版 README 的 `pnpm --filter @deepseek-ai/dsh add ...` + `~/.dsh/config.yaml`

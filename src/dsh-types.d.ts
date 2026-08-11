@@ -2,7 +2,7 @@ import type { IConversation } from '@deepseek-ai/dsh-client-ui-conversation/clie
 import type { IWorkspaces } from '@deepseek-ai/dsh-client-runtime/client'
 import type { HttpServerService } from '@deepseek-ai/dsh-host-webserver'
 
-declare module 'cordis' {
+declare module '@deepseek-ai/cordis' {
   interface Context {
     conversation: IConversation
     workspaces: IWorkspaces

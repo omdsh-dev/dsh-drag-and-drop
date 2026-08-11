@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { Context } from 'cordis'
+import type { Context } from '@deepseek-ai/cordis'
 import { locate } from './locator.ts'
 import { FILE_DROP_ROUTE, type LocateRequest, type LocateResponse } from './protocol.ts'
 

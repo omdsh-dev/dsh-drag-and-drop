@@ -46,11 +46,12 @@ rmSync(nodeModules, { recursive: true, force: true })
 symlinkSync(join(checkout, 'node_modules'), nodeModules, 'dir')
 
 try {
-  const cordisTarget = join(nodeModules, 'cordis')
-  if (!existsSync(cordisTarget)) symlinkSync(join(checkout, 'vendor', 'cordis'), cordisTarget, 'dir')
-
   const scope = join(nodeModules, '@deepseek-ai')
   mkdirSync(scope, { recursive: true })
+  // The framework peer is rescoped into @deepseek-ai (cordis -> @deepseek-ai/cordis):
+  // link the vendored source under the scoped name so tsc/tsdown resolve it.
+  const cordisTarget = join(scope, 'cordis')
+  if (!existsSync(cordisTarget)) symlinkSync(join(checkout, 'vendor', 'cordis'), cordisTarget, 'dir')
   for (const name of [
     '@deepseek-ai/dsh-client-runtime',
     '@deepseek-ai/dsh-client-ui-conversation',
