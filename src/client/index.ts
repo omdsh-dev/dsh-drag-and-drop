@@ -4,6 +4,7 @@ import { choosePath } from './chooser.ts'
 import { droppedItems } from './drop-items.ts'
 import { locateDroppedDirectory, locateDroppedFile } from './locator.ts'
 import { pathsFromDrop } from './paths.ts'
+import { suppressImageFormatToast } from './suppress-toast.ts'
 import { createFileDropToast, type FileDropToast } from './toast.ts'
 
 export { pathsFromDrop, pathsFromUriList } from './paths.ts'
@@ -132,6 +133,7 @@ export function apply(ctx: ClientContext): void {
   let dragDepth = 0
   const overlay = createOverlay()
   const toast = createFileDropToast()
+  const suppressToast = suppressImageFormatToast()
   const onDragEnter = (event: DragEvent): void => {
     if (!hasFilePayload(event)) return
     dragDepth += 1
@@ -166,5 +168,6 @@ export function apply(ctx: ClientContext): void {
     window.removeEventListener('drop', onDrop)
     overlay.dispose()
     toast.dispose()
+    suppressToast.dispose()
   }, 'file-drop: global drag listeners')
 }
