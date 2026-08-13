@@ -142,7 +142,7 @@ Windows 在系统索引没有返回候选时，还会搜索用户目录和可用
 ## 卸载
 
 ```sh
-dsh plugin --profile web remove @dsh-external/dsh-drag-and-drop
+dsh plugin --profile web remove @bill9109/dsh-drag-and-drop
 ```
 
 然后按你当前的方式重启 DSH Web UI。

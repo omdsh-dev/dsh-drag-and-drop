@@ -139,7 +139,7 @@ Installing Everything and its command-line tools significantly speeds up path re
 ## Uninstall
 
 ```sh
-dsh plugin --profile web remove @dsh-external/dsh-drag-and-drop
+dsh plugin --profile web remove @bill9109/dsh-drag-and-drop
 ```
 
 Then restart DSH Web UI the way you normally do.
