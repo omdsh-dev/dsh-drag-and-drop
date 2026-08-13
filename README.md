@@ -1,12 +1,12 @@
 # dsh-drag-and-drop — 文件拖拽路径插件
 
+[English](README.en.md) | 中文
+
 DeepSeek Harness Web UI 插件：把文件拖入页面任意位置，将文件原始绝对路径插入当前会话输入框。
 
 插件不会上传、移动或复制文件，不会破坏文件所在目录与相邻依赖文件之间的关系。
 
-发布于 [dsh-external](https://github.com/dsh-external) 组织 · 许可证 BSD-3-Clause
-
-> 本组织为 DSH 内测社区仓库，官方不保证公开发布后该组织仍然存在，请自行保留副本。
+许可证 BSD-3-Clause · [GitHub](https://github.com/bill9109/dsh-drag-and-drop)
 
 ## 实现能力
 
@@ -28,16 +28,16 @@ DeepSeek Harness Web UI 插件：把文件拖入页面任意位置，将文件�
 本插件是 DSH **bundle**（`package.json` 声明 `dsh.bundle` + `dsh.client`），通过
 标准的 `dsh plugin` 机制安装到 profile，**无需修改 DSH 源码、无需 `config.yaml`**。
 
-> 旧版 README 的 `pnpm --filter @deepseek-ai/dsh add ...` + `~/.dsh/config.yaml`
-> 方式已过时：官方 profile/bundle 模型下 `$DSH_HOME/config.yaml` 不再被读取。
+> 旧版 README 的 `pnpm --filter @deepseek-ai/dsh add ...` + `config.yaml`
+> 方式已过时：官方 profile/bundle 模型下不再读取 `config.yaml`。
 
 ### 1. 安装到 profile（标准做法）
 
 装进官方 `web` profile（自带 `dsh-base` + `dsh-web-app` 两层，插件需要
-`httpServer` 由 web-app 提供）：
+`webServer` 由 web-app 提供）：
 
 ```sh
-dsh plugin --profile web add github:dsh-external/dsh-drag-and-drop
+dsh plugin --profile web add github:bill9109/dsh-drag-and-drop
 # 或本地 checkout：
 dsh plugin --profile web add /path/to/dsh-drag-and-drop
 ```
@@ -135,7 +135,7 @@ Windows 在系统索引没有返回候选时，还会搜索用户目录和可用
 
 ### Windows
 
-支持盘符路径和 UNC 网络路径。浏览器隐藏路径时，插件优先使用 Everything CLI；未安装 Everything 时，使用 PowerShell搜索用户目录和固定磁盘。
+支持盘符路径和 UNC 网络路径。浏览器隐藏路径时，插件优先使用 Everything CLI；未安装 Everything 时，使用 PowerShell 搜索用户目录和固定磁盘。
 
 安装 Everything 及其命令行工具可以显著提高大磁盘上的定位速度。
 
