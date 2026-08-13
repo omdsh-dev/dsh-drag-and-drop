@@ -3,7 +3,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { locate } from './locator.ts'
 import { FILE_DROP_ROUTE, type LocateRequest, type LocateResponse } from './protocol.ts'
 
-export const inject = ['httpServer']
+export const inject = ['webServer']
 
 export const MAX_BODY_BYTES = 4 * 1024 * 1024
 
@@ -29,7 +29,7 @@ function sendJson(res: ServerResponse, status: number, body: LocateResponse): vo
 }
 
 export function apply(ctx: Context): void {
-  ctx.effect(() => ctx.httpServer.register({
+  ctx.effect(() => ctx.webServer.register({
     kind: 'exact',
     path: FILE_DROP_ROUTE,
     handler: async (req, res) => {

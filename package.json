@@ -1,6 +1,6 @@
 {
   "name": "@dsh-external/dsh-drag-and-drop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Drag local files into DSH Web UI and insert their original filesystem paths without uploading or copying them",
   "type": "module",
   "main": "./lib/index.js",
