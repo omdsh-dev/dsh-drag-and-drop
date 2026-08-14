@@ -29,6 +29,24 @@ describe('locate', () => {
       .resolves.toEqual({ status: 'found', path })
   })
 
+  it('resolves a file three levels deep via the shallow fast path without a digest', async () => {
+    const workspace = await root()
+    await mkdir(join(workspace, 'a', 'b'), { recursive: true })
+    const path = join(workspace, 'a', 'b', 'deep.txt')
+    await writeFile(path, 'deep content')
+    await expect(locate({ phase: 'metadata', file: await metadata(path), workspacePaths: [workspace], currentWorkspacePath: workspace }))
+      .resolves.toEqual({ status: 'found', path })
+  })
+
+  it('still finds files deeper than three levels via the bounded recursive fallback', async () => {
+    const workspace = await root()
+    await mkdir(join(workspace, 'a', 'b', 'c'), { recursive: true })
+    const path = join(workspace, 'a', 'b', 'c', 'quarter.txt')
+    await writeFile(path, 'quarter content')
+    await expect(locate({ phase: 'metadata', file: await metadata(path), workspacePaths: [workspace], currentWorkspacePath: workspace }))
+      .resolves.toEqual({ status: 'found', path })
+  })
+
   it('requests a sample for duplicate name-and-size candidates and resolves by digest', async () => {
     const workspace = await root()
     await mkdir(join(workspace, 'a'))

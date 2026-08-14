@@ -11,6 +11,8 @@ import { SMALL_FILE_BYTES } from './protocol.ts'
 const MAX_CANDIDATES = 100
 const MAX_WALK_ENTRIES = 20_000
 const WALK_DEPTH = 12
+/** Per-root cap on direct subdirectories expanded by the depth-3 fast path. */
+const SHALLOW_MAX_DIRS = 4096
 
 interface Candidate {
   readonly path: string
@@ -57,9 +59,40 @@ async function validateCandidates(item: DroppedEntryMeta, paths: readonly string
     : a.path.localeCompare(b.path))
 }
 
-async function directCandidates(item: DroppedEntryMeta, roots: readonly string[]): Promise<Candidate[]> {
-  const paths = await Promise.all(roots.map(root => directCandidate(root, item.name, item.kind)))
-  return validateCandidates(item, paths.filter(path => path !== undefined))
+/**
+ * Fast path: probe each root's shallow tree (depths 1-3) — the root's direct
+ * child, direct children of its direct subdirectories, and direct children of
+ * those subdirectories. Depths 1-2 are blind stats; only depth 3 requires
+ * expanding the direct subdirectories. This resolves the overwhelming majority
+ * of real drops (e.g. ~/Downloads/dump2 11/iotclaw.ndjson) without a full walk,
+ * while the bounded recursive search below remains the fallback for deeper
+ * files and for collecting every same-named candidate.
+ */
+async function shallowCandidates(item: DroppedEntryMeta, roots: readonly string[]): Promise<Candidate[]> {
+  const paths: string[] = []
+  for (const root of roots) {
+    const direct = await directCandidate(root, item.name, item.kind)
+    if (direct !== undefined) paths.push(direct)
+    let entries
+    try { entries = await readdir(root, { withFileTypes: true }) } catch { continue }
+    let expanded = 0
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.isSymbolicLink()) continue
+      if (expanded >= SHALLOW_MAX_DIRS) break
+      expanded += 1
+      const directory = join(root, entry.name)
+      const nested = await directCandidate(directory, item.name, item.kind)
+      if (nested !== undefined) paths.push(nested)
+      let grandchildren
+      try { grandchildren = await readdir(directory, { withFileTypes: true }) } catch { continue }
+      for (const grandchild of grandchildren) {
+        if (!grandchild.isDirectory() || grandchild.isSymbolicLink()) continue
+        const deep = await directCandidate(join(directory, grandchild.name), item.name, item.kind)
+        if (deep !== undefined) paths.push(deep)
+      }
+    }
+  }
+  return validateCandidates(item, paths)
 }
 
 async function recursiveCandidates(item: DroppedEntryMeta, roots: readonly string[]): Promise<Candidate[]> {
@@ -85,8 +118,8 @@ async function metadataCandidates(item: DroppedEntryMeta, request: LocateRequest
   const rootGroups = [current === undefined ? [] : [current], otherWorkspaces, commonRoots]
   const indexedPaths = await indexedSearch(item.name)
   for (const roots of rootGroups) {
-    const direct = await directCandidates(item, roots)
-    if (direct.length > 0) return direct
+    const shallow = await shallowCandidates(item, roots)
+    if (shallow.length > 0) return shallow
     const indexed = await validateCandidates(item, pathsInside(indexedPaths, roots))
     if (indexed.length > 0) return indexed
     const recursive = await recursiveCandidates(item, roots)

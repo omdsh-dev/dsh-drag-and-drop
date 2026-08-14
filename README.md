@@ -1,6 +1,6 @@
 # dsh-drag-and-drop — Drag local files in and insert their real paths
 
-[![Release v0.1.4](https://img.shields.io/badge/release-v0.1.4-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.4)
+[![Release v0.1.5](https://img.shields.io/badge/release-v0.1.5-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.5)
 [![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-0B7285?style=flat-square)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%5E20%20%7C%20%3E%3D22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](package.json)
 [![DSH profiles](https://img.shields.io/badge/DSH-Web-5B4CF0?style=flat-square)](cordis.patch.yml)
@@ -91,8 +91,9 @@ If the browser hides the original path for security reasons, the plugin locates 
 1. The current Workspace
 2. Other registered Workspaces
 3. Desktop, Documents, and Downloads
-4. The operating system's file index
-5. A bounded, platform-specific directory search
+4. A depth-1..3 shallow scan within each search root: the root's direct child, the direct children of its direct subdirectories, and the direct children of those subdirectories — this resolves the vast majority of real drops (e.g. `~/Downloads/dump2 11/iotclaw.ndjson`) without walking the whole tree
+5. The operating system's file index
+6. A bounded, platform-specific directory search
 
 System indexes used per platform:
 
@@ -108,6 +109,7 @@ To keep searches bounded:
 
 - a single external index command times out after 3 seconds
 - at most 100 candidate paths are kept
+- the depth-3 shallow scan expands at most 4,096 direct subdirectories per root
 - each recursive search root visits at most 20,000 directory entries
 - unreadable directories and files are ignored
 
@@ -120,7 +122,11 @@ Candidates are first filtered by:
 
 Modification time is used only for ranking candidates, never as identity.
 
+<<<<<<< HEAD
 If only one candidate remains, the plugin uses that path directly without reading the file's content.
+=======
+每一层搜索都先做浅层快速定位：先检查搜索根的直接子项，再检查直接子目录与孙目录内的直接子项（共三层以内的文件，绝大多数拖拽都在这一范围内），随后才查询该范围内的操作系统索引，最后才递归目录。当前 Workspace、其他 Workspace 和常用目录的优先级保持不变。
+>>>>>>> 4bab506 (feat: resolve dropped-file paths up to three levels deep)
 
 If multiple candidates remain, the plugin compares sampled fingerprints from the beginning, middle, and end of the files. Only when sampled fingerprints of large files still collide does it compute a full SHA-256.
 

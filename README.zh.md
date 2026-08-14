@@ -1,6 +1,6 @@
 # dsh-drag-and-drop — 拖入本地文件，插入真实路径
 
-[![Release v0.1.4](https://img.shields.io/badge/release-v0.1.4-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.4)
+[![Release v0.1.5](https://img.shields.io/badge/release-v0.1.5-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.5)
 [![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-0B7285?style=flat-square)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%5E20%20%7C%20%3E%3D22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](package.json)
 [![DSH profiles](https://img.shields.io/badge/DSH-Web-5B4CF0?style=flat-square)](cordis.patch.yml)
@@ -91,8 +91,9 @@ dsh plugin --profile web remove @omdsh-dev/dsh-drag-and-drop
 1. 当前 Workspace
 2. 其他已注册 Workspace
 3. Desktop、Documents 和 Downloads
-4. 操作系统文件索引
-5. 有边界限制的平台目录搜索
+4. 各搜索根内三层以内的浅层快速定位：根的直接子项、直接子目录的直接子项、以及这些子目录的直接子项——绝大多数真实拖拽（如 `~/Downloads/dump2 11/iotclaw.ndjson`）无需遍历整棵目录树即可命中
+5. 操作系统文件索引
+6. 有边界限制的平台目录搜索
 
 不同平台使用的系统索引：
 
@@ -108,6 +109,7 @@ Windows 在系统索引没有返回候选时，还会搜索用户目录和可用
 
 - 单次外部索引命令的超时时间为 3 秒
 - 最多保留 100 个候选路径
+- 三层浅层快速定位在每个搜索根最多展开 4,096 个直接子目录
 - 每个递归搜索根最多访问 20,000 个目录项
 - 无法读取的目录和文件会被忽略
 

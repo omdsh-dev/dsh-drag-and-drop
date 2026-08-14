@@ -4,6 +4,12 @@ All notable user-facing changes to dsh-drag-and-drop are documented in this file
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-08-14
+
+### Added
+
+- Depth-1..3 shallow scan within each search root, run before the OS index and the bounded recursive walk: the root's direct child, the direct children of its direct subdirectories, and the direct children of those subdirectories (up to 4,096 expanded subdirectories per root). This resolves drops like a file two levels deep inside a 500k-entry Downloads tree — previously the direct-child-only probe missed it, the recursive walk exhausted its 20,000-entry budget, and the drop failed with the "未能定位原始路径" toast.
+
 ## [0.1.4] - 2026-08-14
 
 ### Changed
