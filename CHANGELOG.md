@@ -4,6 +4,12 @@ All notable user-facing changes to dsh-drag-and-drop are documented in this file
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-08-14
+
+### Changed
+
+- Migrated the repository to the `omdsh-dev` GitHub organization: the package scope is now `@omdsh-dev/dsh-drag-and-drop`, and the repository, homepage, issues, badges, and install commands all point at `github.com/omdsh-dev/dsh-drag-and-drop`. The built `lib/` was updated with the new registration name.
+
 ## [0.1.3] - 2026-08-14
 
 ### Changed

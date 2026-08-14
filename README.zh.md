@@ -1,11 +1,11 @@
 # dsh-drag-and-drop — 拖入本地文件，插入真实路径
 
-[![Release v0.1.3](https://img.shields.io/badge/release-v0.1.3-5B4CF0?style=flat-square)](https://github.com/bill9109/dsh-drag-and-drop/releases/tag/v0.1.3)
+[![Release v0.1.4](https://img.shields.io/badge/release-v0.1.4-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.4)
 [![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-0B7285?style=flat-square)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%5E20%20%7C%20%3E%3D22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](package.json)
 [![DSH profiles](https://img.shields.io/badge/DSH-Web-5B4CF0?style=flat-square)](cordis.patch.yml)
 
-**安装：** `dsh plugin --profile web add github:bill9109/dsh-drag-and-drop`
+**安装：** `dsh plugin --profile web add github:omdsh-dev/dsh-drag-and-drop`
 
 **DeepSeek Harness Web UI 插件：把本地文件或文件夹拖入页面任意位置，其原始绝对文件系统路径就会插入当前会话输入框——不上传、不移动、不复制任何东西。**
 
@@ -45,7 +45,7 @@
 本插件是 DSH **bundle**（`package.json` 声明 `dsh.bundle` + `dsh.client`），通过标准的 `dsh plugin` 机制安装到 `web` profile，**无需修改 DSH 源码、无需 `config.yaml`**：
 
 ```sh
-dsh plugin --profile web add github:bill9109/dsh-drag-and-drop
+dsh plugin --profile web add github:omdsh-dev/dsh-drag-and-drop
 # 或本地 checkout：
 dsh plugin --profile web add /path/to/dsh-drag-and-drop
 ```
@@ -59,7 +59,7 @@ dsh plugin --profile web add /path/to/dsh-drag-and-drop
 ### 升级
 
 ```sh
-dsh plugin --profile web update github:bill9109/dsh-drag-and-drop
+dsh plugin --profile web update github:omdsh-dev/dsh-drag-and-drop
 ```
 
 本地路径安装则对替换后的 checkout 重新执行 `add`。
@@ -67,7 +67,7 @@ dsh plugin --profile web update github:bill9109/dsh-drag-and-drop
 ### 卸载
 
 ```sh
-dsh plugin --profile web remove @bill9109/dsh-drag-and-drop
+dsh plugin --profile web remove @omdsh-dev/dsh-drag-and-drop
 ```
 
 命令会把包从 profile 和 `dsh.profile.bundles` 中移除。卸载后重启 Web UI 并硬刷新浏览器。
@@ -199,7 +199,7 @@ pnpm run build
 
 ## 社区与关于
 
-- 可复现的 bug、聚焦的功能请求和使用问题，走 [GitHub Issues](https://github.com/bill9109/dsh-drag-and-drop/issues)。
+- 可复现的 bug、聚焦的功能请求和使用问题，走 [GitHub Issues](https://github.com/omdsh-dev/dsh-drag-and-drop/issues)。
 - 提变更前先读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题通过 [SECURITY.md](SECURITY.md) 私有上报。
 - 版本与兼容性说明见 [CHANGELOG.md](CHANGELOG.md)。
 

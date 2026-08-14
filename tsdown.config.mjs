@@ -5,7 +5,7 @@ if (checkout === undefined) {
 
 const { clientBundle } = await import(`${checkout}/packages/client/tsdown.client.ts`)
 
-export default clientBundle('@bill9109/dsh-drag-and-drop', [
+export default clientBundle('@omdsh-dev/dsh-drag-and-drop', [
   'lib/types/index.js',
   'lib/types/invariant.js',
 ])

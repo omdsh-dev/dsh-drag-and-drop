@@ -7,4 +7,4 @@
 
 - insert:
     - id: drag-and-drop
-      name: '@bill9109/dsh-drag-and-drop'
+      name: '@omdsh-dev/dsh-drag-and-drop'

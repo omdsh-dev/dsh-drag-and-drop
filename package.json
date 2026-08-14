@@ -1,6 +1,6 @@
 {
-  "name": "@bill9109/dsh-drag-and-drop",
-  "version": "0.1.3",
+  "name": "@omdsh-dev/dsh-drag-and-drop",
+  "version": "0.1.4",
   "description": "Drag local files into the DSH Web UI and insert their original filesystem paths without uploading or copying them",
   "keywords": [
     "deepseek",
@@ -44,12 +44,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bill9109/dsh-drag-and-drop.git"
+    "url": "git+https://github.com/omdsh-dev/dsh-drag-and-drop.git"
   },
   "bugs": {
-    "url": "https://github.com/bill9109/dsh-drag-and-drop/issues"
+    "url": "https://github.com/omdsh-dev/dsh-drag-and-drop/issues"
   },
-  "homepage": "https://github.com/bill9109/dsh-drag-and-drop#readme",
+  "homepage": "https://github.com/omdsh-dev/dsh-drag-and-drop#readme",
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "vitest run",

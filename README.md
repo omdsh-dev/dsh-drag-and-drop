@@ -1,11 +1,11 @@
 # dsh-drag-and-drop — Drag local files in and insert their real paths
 
-[![Release v0.1.3](https://img.shields.io/badge/release-v0.1.3-5B4CF0?style=flat-square)](https://github.com/bill9109/dsh-drag-and-drop/releases/tag/v0.1.3)
+[![Release v0.1.4](https://img.shields.io/badge/release-v0.1.4-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.4)
 [![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-0B7285?style=flat-square)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%5E20%20%7C%20%3E%3D22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](package.json)
 [![DSH profiles](https://img.shields.io/badge/DSH-Web-5B4CF0?style=flat-square)](cordis.patch.yml)
 
-**Install:** `dsh plugin --profile web add github:bill9109/dsh-drag-and-drop`
+**Install:** `dsh plugin --profile web add github:omdsh-dev/dsh-drag-and-drop`
 
 **A DeepSeek Harness Web UI plugin: drag local files or folders onto any part of the page and their original absolute filesystem paths are inserted into the current conversation input — without uploading, moving, or copying anything.**
 
@@ -45,7 +45,7 @@ Dropping multiple items at once inserts one path per line.
 The plugin is a DSH **bundle** (`package.json` declares `dsh.bundle` + `dsh.client`). Install it into the `web` profile with the standard `dsh plugin` mechanism — **no DSH source changes and no `config.yaml` needed**:
 
 ```sh
-dsh plugin --profile web add github:bill9109/dsh-drag-and-drop
+dsh plugin --profile web add github:omdsh-dev/dsh-drag-and-drop
 # or from a local checkout:
 dsh plugin --profile web add /path/to/dsh-drag-and-drop
 ```
@@ -59,7 +59,7 @@ After installing, **restart the Web UI** the way you normally start DSH, then re
 ### Upgrade
 
 ```sh
-dsh plugin --profile web update github:bill9109/dsh-drag-and-drop
+dsh plugin --profile web update github:omdsh-dev/dsh-drag-and-drop
 ```
 
 For a local-path installation, run `add` again against the replacement checkout.
@@ -67,7 +67,7 @@ For a local-path installation, run `add` again against the replacement checkout.
 ### Uninstall
 
 ```sh
-dsh plugin --profile web remove @bill9109/dsh-drag-and-drop
+dsh plugin --profile web remove @omdsh-dev/dsh-drag-and-drop
 ```
 
 The command removes the package from the profile and from `dsh.profile.bundles`. After uninstalling, restart the Web UI and hard-refresh the browser.
@@ -199,7 +199,7 @@ Repository layout:
 
 ## Community and About
 
-- Use [GitHub Issues](https://github.com/bill9109/dsh-drag-and-drop/issues) for reproducible bugs, focused feature requests, and usage questions.
+- Use [GitHub Issues](https://github.com/omdsh-dev/dsh-drag-and-drop/issues) for reproducible bugs, focused feature requests, and usage questions.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing changes; report vulnerabilities privately via [SECURITY.md](SECURITY.md).
 - Follow releases and compatibility notes in [CHANGELOG.md](CHANGELOG.md).
 

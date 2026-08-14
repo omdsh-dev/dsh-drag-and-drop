@@ -3,7 +3,7 @@
 ## Start here
 
 - Read the [README](README.md) for installation, configuration, usage, and troubleshooting.
-- Search existing [issues](https://github.com/bill9109/dsh-drag-and-drop/issues) and [pull requests](https://github.com/bill9109/dsh-drag-and-drop/pulls) before opening a duplicate.
+- Search existing [issues](https://github.com/omdsh-dev/dsh-drag-and-drop/issues) and [pull requests](https://github.com/omdsh-dev/dsh-drag-and-drop/pulls) before opening a duplicate.
 
 ## Where to ask
 
