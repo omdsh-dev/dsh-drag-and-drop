@@ -1,177 +1,207 @@
-# dsh-drag-and-drop — 文件拖拽路径插件
+# dsh-drag-and-drop — Drag local files in and insert their real paths
 
-[English](README.en.md) | 中文
+[![Release v0.1.3](https://img.shields.io/badge/release-v0.1.3-5B4CF0?style=flat-square)](https://github.com/bill9109/dsh-drag-and-drop/releases/tag/v0.1.3)
+[![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-0B7285?style=flat-square)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%5E20%20%7C%20%3E%3D22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](package.json)
+[![DSH profiles](https://img.shields.io/badge/DSH-Web-5B4CF0?style=flat-square)](cordis.patch.yml)
 
-DeepSeek Harness Web UI 插件：把文件拖入页面任意位置，将文件原始绝对路径插入当前会话输入框。
+**Install:** `dsh plugin --profile web add github:bill9109/dsh-drag-and-drop`
 
-插件不会上传、移动或复制文件，不会破坏文件所在目录与相邻依赖文件之间的关系。
+**A DeepSeek Harness Web UI plugin: drag local files or folders onto any part of the page and their original absolute filesystem paths are inserted into the current conversation input — without uploading, moving, or copying anything.**
 
-许可证 BSD-3-Clause · [GitHub](https://github.com/bill9109/dsh-drag-and-drop)
+[English](README.md) | [中文](README.zh.md)
 
-## 实现能力
+## Why this exists
 
-- 将文件拖入 Web UI 任意位置即可插入原始绝对路径
-- 拖拽过程中显示全页面压暗和模糊提示
-- 支持文件和文件夹，也支持一次拖入多个项目，每个路径占一行
-- 支持 macOS、Linux 和 Windows 原生路径
-- 支持 POSIX 路径、Windows 盘符路径和 UNC 网络路径
-- 不上传、不移动、不复制文件
-- 优先在当前 Workspace 和已注册 Workspace 中定位文件
-- 浏览器隐藏原始路径时，使用本地文件索引和受控目录搜索
-- 仅在存在多个候选文件时计算内容指纹
-- 多个完全相同的文件副本无法自动区分时，由用户选择路径
-- 定位失败使用插件 toast 提示，可手动关闭，8 秒后自动消失，悬停时暂停计时
-- 通过 DSH 的输入状态服务写入草稿，不直接修改输入框 DOM
+A browser never hands a web page the real filesystem path of a dropped file — it exposes only a local file URI when it feels like it, and often nothing at all, for security. DSH, though, operates on real files: its tools read, run, and patch actual paths on the machine. Drop a file into an ordinary web input and you get either an upload (a copy that silently breaks the file's relationship with its neighboring dependencies) or a hand-typed path that is easy to get wrong.
 
-## 安装
+This plugin closes that gap on the machine running DSH. It converts the browser's local file URI into the native absolute path, and when the browser hides the path entirely it resolves the file back to its real location — through the current Workspace, registered Workspaces, the OS file index, and a bounded directory search — then writes that path into the current conversation input. The file never leaves its directory.
 
-本插件是 DSH **bundle**（`package.json` 声明 `dsh.bundle` + `dsh.client`），通过
-标准的 `dsh plugin` 机制安装到 profile，**无需修改 DSH 源码、无需 `config.yaml`**。
+## Features
 
-> 旧版 README 的 `pnpm --filter @deepseek-ai/dsh add ...` + `config.yaml`
-> 方式已过时：官方 profile/bundle 模型下不再读取 `config.yaml`。
+- Drag files onto any part of the Web UI to insert their original absolute paths
+- Full-page dim + blur hint while dragging
+- Supports files and folders; drag multiple items at once — one path per line
+- Native paths on macOS, Linux, and Windows
+- POSIX paths, Windows drive-letter paths, and UNC network paths
+- No uploading, moving, or copying of files
+- Locates files in the current Workspace and registered Workspaces first
+- When the browser hides the original path, uses the local file index and bounded directory search
+- Computes content fingerprints only when multiple candidates exist
+- When several byte-identical copies cannot be told apart automatically, lets the user pick the path
+- Failed lookups surface as a dismissible plugin toast (auto-dismisses after 8s; hovering pauses the timer)
+- Writes the draft via DSH's input-state service instead of touching the input DOM
 
-### 1. 安装到 profile（标准做法）
+## Usage
 
-装进官方 `web` profile（自带 `dsh-base` + `dsh-web-app` 两层，插件需要
-`webServer` 由 web-app 提供）：
+Drag files or folders from Finder, a Linux file manager, or Windows Explorer onto any part of the DSH Web UI.
+
+Release the mouse when the full-page drag hint appears; the plugin writes the resolved original absolute path into the current conversation input.
+
+Dropping multiple items at once inserts one path per line.
+
+## Install
+
+The plugin is a DSH **bundle** (`package.json` declares `dsh.bundle` + `dsh.client`). Install it into the `web` profile with the standard `dsh plugin` mechanism — **no DSH source changes and no `config.yaml` needed**:
 
 ```sh
 dsh plugin --profile web add github:bill9109/dsh-drag-and-drop
-# 或本地 checkout：
+# or from a local checkout:
 dsh plugin --profile web add /path/to/dsh-drag-and-drop
 ```
 
-仓库包含构建产物（`lib/` 已提交），安装后无需另外构建。
+The repository ships its build output (`lib/` is committed) — no build step needed after installing.
 
-### 2. 重启 Web UI
+> The old README's `pnpm --filter @deepseek-ai/dsh add ...` + `config.yaml` flow is obsolete: under the official profile/bundle model `config.yaml` is no longer read.
 
-使用你当前启动 DSH Web UI 的方式重新启动服务，然后刷新浏览器页面。插件会出现在
-浏览器引导图（`__DSH_BOOT__`）中，其 client bundle 自动加载。
+After installing, **restart the Web UI** the way you normally start DSH, then refresh the browser page — the plugin appears in the browser boot manifest (`__DSH_BOOT__`) and its client bundle loads automatically.
 
-## 使用
+### Upgrade
 
-把文件或文件夹从 Finder、Linux 文件管理器或 Windows 文件资源管理器拖入 DSH Web UI 的任意位置。
+```sh
+dsh plugin --profile web update github:bill9109/dsh-drag-and-drop
+```
 
-出现全页面拖拽提示后松开鼠标，插件会将定位到的原始绝对路径写入当前会话输入框。
+For a local-path installation, run `add` again against the replacement checkout.
 
-一次拖入多个项目时，每个路径占一行。
-
-## 路径定位
-
-如果浏览器提供本地文件 URI，插件会直接转换为当前操作系统的原生路径。
-
-如果浏览器出于安全原因隐藏原始路径，插件按以下顺序定位文件：
-
-1. 当前 Workspace
-2. 其他已注册 Workspace
-3. Desktop、Documents 和 Downloads
-4. 操作系统文件索引
-5. 有边界限制的平台目录搜索
-
-不同平台使用的系统索引：
-
-- macOS：Spotlight
-- Linux：优先使用 `plocate`，其次使用 `locate`
-- Windows：优先使用 Everything CLI，其次使用 PowerShell
-
-Linux 在系统索引没有返回候选时，还会搜索用户主目录以及 `/mnt`、`/media` 下的挂载目录。
-
-Windows 在系统索引没有返回候选时，还会搜索用户目录和可用的固定磁盘。
-
-为了避免无边界搜索：
-
-- 单次外部索引命令的超时时间为 3 秒
-- 最多保留 100 个候选路径
-- 每个递归搜索根最多访问 20,000 个目录项
-- 无法读取的目录和文件会被忽略
-
-## 候选确认
-
-候选文件首先通过以下信息筛选：
-
-- 完整文件名
-- 文件大小
-
-修改时间只用于候选排序，不作为文件身份依据。
-
-如果只剩一个候选，插件会直接使用该路径，不读取文件内容。
-
-如果存在多个候选，插件会比较文件开头、中间和结尾的采样指纹。大文件的采样指纹仍然冲突时，才会计算完整 SHA-256。
-
-如果多个路径对应完全相同的文件内容，插件会显示路径列表，由用户选择需要插入的路径。
-
-文件夹首次只按名称搜索。唯一候选会直接返回，不遍历浏览器目录；多个同名候选才比较排序后的相对路径、项目类型和文件大小。结构相同的多个目录会进一步对最多 24 个确定性选择的文件计算内容采样；仍然相同则由用户选择路径。目录遍历最多处理 10,000 个项目和 32 层，不跟随符号链接或 Windows junction。
-
-每一层搜索都先检查搜索根的直接子项，再查询该范围内的操作系统索引，最后才递归目录。当前 Workspace、其他 Workspace 和常用目录的优先级保持不变。
-
-## 隐私和文件访问
-
-插件不会：
-
-- 上传文件
-- 复制文件
-- 移动文件
-- 修改文件
-- 删除文件
-
-多数情况下，插件只读取文件元数据。
-
-只有存在多个同名、同大小候选文件时，才会读取少量文件内容计算采样指纹。仅在大文件采样仍然无法区分时，才会读取完整内容计算 SHA-256。
-
-所有定位和指纹计算都在运行 DSH 的本机完成。
-
-## 平台说明
-
-### macOS
-
-支持 Finder 拖拽和 Spotlight 索引。已在 macOS Chrome 环境验证。
-
-### Linux
-
-支持提供 `text/uri-list` 的文件管理器。浏览器隐藏路径时，插件使用 Workspace、常用目录、`plocate`、`locate` 和受控挂载目录搜索。
-
-建议安装 `plocate`，以获得更快的全局路径定位。
-
-### Windows
-
-支持盘符路径和 UNC 网络路径。浏览器隐藏路径时，插件优先使用 Everything CLI；未安装 Everything 时，使用 PowerShell 搜索用户目录和固定磁盘。
-
-安装 Everything 及其命令行工具可以显著提高大磁盘上的定位速度。
-
-## 卸载
+### Uninstall
 
 ```sh
 dsh plugin --profile web remove @bill9109/dsh-drag-and-drop
 ```
 
-然后按你当前的方式重启 DSH Web UI。
+The command removes the package from the profile and from `dsh.profile.bundles`. After uninstalling, restart the Web UI and hard-refresh the browser.
 
-## 开发
+## Troubleshooting
 
-构建脚本需要可用的 DSH checkout。默认会从 `dsh` 命令定位，也可以显式指定：
+| Symptom | Resolution |
+| --- | --- |
+| Dropping a file inserts nothing | Drag again and confirm the full-page hint appears. Verify the bundle is in the profile (`dsh --profile web --dump-config | grep drag-and-drop`) and that the Web UI was restarted + hard-refreshed after installing |
+| Wrong path inserted when several copies share a name | Candidates are filtered by full file name and size, then content-sampled only among the survivors. If byte-identical copies remain, the plugin shows a chooser — pick the correct path there |
+| Path resolution is slow on a large disk | Install the platform index (Linux: `plocate`; Windows: Everything CLI) and keep files inside a Workspace or a common directory. Every search is bounded: 3s per index command, at most 100 candidates, at most 20,000 directory entries per root |
+| macOS/Linux: dropping a folder resolves nothing | Folders are matched by name against Workspaces and common directories; a folder outside every searchable root cannot be located when the browser hides the path — move it into a Workspace or install the OS index |
+| Plugin does not load after install | Restart the Web UI and hard-refresh the browser — the client bundle only loads on a fresh page load with the plugin in `__DSH_BOOT__` |
+
+## Path resolution
+
+If the browser exposes a local file URI, the plugin converts it directly into the operating system's native path.
+
+If the browser hides the original path for security reasons, the plugin locates the file in this order:
+
+1. The current Workspace
+2. Other registered Workspaces
+3. Desktop, Documents, and Downloads
+4. The operating system's file index
+5. A bounded, platform-specific directory search
+
+System indexes used per platform:
+
+- macOS: Spotlight
+- Linux: `plocate` first, then `locate`
+- Windows: Everything CLI first, then PowerShell
+
+On Linux, when the system index returns no candidates, the plugin also searches the user home directory and mount points under `/mnt` and `/media`.
+
+On Windows, when the system index returns no candidates, the plugin also searches the user directory and available fixed disks.
+
+To keep searches bounded:
+
+- a single external index command times out after 3 seconds
+- at most 100 candidate paths are kept
+- each recursive search root visits at most 20,000 directory entries
+- unreadable directories and files are ignored
+
+## Candidate confirmation
+
+Candidates are first filtered by:
+
+- the full file name
+- the file size
+
+Modification time is used only for ranking candidates, never as identity.
+
+If only one candidate remains, the plugin uses that path directly without reading the file's content.
+
+If multiple candidates remain, the plugin compares sampled fingerprints from the beginning, middle, and end of the files. Only when sampled fingerprints of large files still collide does it compute a full SHA-256.
+
+If several paths correspond to byte-identical files, the plugin shows the list of paths and lets the user choose which one to insert.
+
+Folders are first searched by name only. A unique candidate is returned directly without traversing the browser directory; multiple same-name candidates are compared by sorted relative path, project type, and file size. For directories that are structurally identical, content samples of up to 24 deterministically chosen files are computed; if still identical, the user picks the path. Directory traversal processes at most 10,000 entries and 32 levels deep, and never follows symlinks or Windows junctions.
+
+Each search level first checks the direct children of the search root, then queries the OS index within that scope, and only then recurses into directories. The priority of the current Workspace, other Workspaces, and common directories is preserved.
+
+## Privacy & file access
+
+The plugin never:
+
+- uploads files
+- copies files
+- moves files
+- modifies files
+- deletes files
+
+In most cases the plugin only reads file metadata.
+
+Only when multiple candidates share the same name and size does it read a small amount of content to compute sampled fingerprints, and only when large files cannot be told apart by sampling does it read the full content to compute SHA-256.
+
+All resolution and fingerprinting happens locally on the machine running DSH.
+
+## Platform notes
+
+### macOS
+
+Finder drag-and-drop and the Spotlight index are supported. Verified in Chrome on macOS.
+
+### Linux
+
+File managers that provide `text/uri-list` are supported. When the browser hides the path, the plugin searches Workspaces, common directories, `plocate`, `locate`, and bounded mount directories.
+
+Installing `plocate` is recommended for faster global path resolution.
+
+### Windows
+
+Drive-letter paths and UNC network paths are supported. When the browser hides the path, the plugin prefers the Everything CLI; without Everything it uses PowerShell to search the user directory and fixed disks.
+
+Installing Everything and its command-line tools significantly speeds up path resolution on large disks.
+
+## Development and verification
+
+The build script needs a DSH checkout. By default it locates one through the `dsh` command; you can also point it explicitly:
 
 ```sh
 DSH_CHECKOUT=/path/to/dsh pnpm run build
 ```
 
-运行测试：
+Run tests:
 
 ```sh
 pnpm test
 ```
 
-执行类型检查：
+Type-check:
 
 ```sh
 pnpm run check
 ```
 
-构建：
+Build:
 
 ```sh
 pnpm run build
 ```
+
+Repository layout:
+
+- `src/` — host (node) half: path resolution, directory walk, fingerprinting, platform search, and the file-locate HTTP route
+- `src/client/` — browser half: drag handling, drop items, path locator, candidate chooser, toast UI
+- `tests/` — vitest suites for the host and client logic
+- `lib/` — committed build output (host + client bundles)
+
+## Community and About
+
+- Use [GitHub Issues](https://github.com/bill9109/dsh-drag-and-drop/issues) for reproducible bugs, focused feature requests, and usage questions.
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing changes; report vulnerabilities privately via [SECURITY.md](SECURITY.md).
+- Follow releases and compatibility notes in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

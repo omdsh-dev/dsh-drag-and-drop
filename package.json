@@ -1,7 +1,17 @@
 {
   "name": "@bill9109/dsh-drag-and-drop",
-  "version": "0.1.2",
-  "description": "Drag local files into DSH Web UI and insert their original filesystem paths without uploading or copying them",
+  "version": "0.1.3",
+  "description": "Drag local files into the DSH Web UI and insert their original filesystem paths without uploading or copying them",
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh-plugin",
+    "dsh-bundle",
+    "web-ui",
+    "drag-and-drop",
+    "file-path",
+    "filesystem"
+  ],
   "type": "module",
   "main": "./lib/index.js",
   "types": "./lib/types/index.d.ts",
@@ -15,14 +25,23 @@
       "default": "./lib/invariant.js"
     },
     "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
     "src",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "README.i18n.yaml",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "license": "BSD-3-Clause",
+  "engines": {
+    "node": "^20.0.0 || >=22.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bill9109/dsh-drag-and-drop.git"
@@ -34,7 +53,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "vitest run",
-    "check": "tsc -p tsconfig.json --noEmit --pretty false"
+    "check": "tsc -p tsconfig.json --noEmit --pretty false",
+    "verify:i18n": "node scripts/verify-i18n.mjs"
   },
   "dsh": {
     "bundle": {
