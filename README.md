@@ -1,6 +1,6 @@
 # dsh-drag-and-drop — Drag local files in and insert their real paths
 
-[![Release v0.1.5](https://img.shields.io/badge/release-v0.1.5-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.5)
+[![Release v0.1.6](https://img.shields.io/badge/release-v0.1.6-5B4CF0?style=flat-square)](https://github.com/omdsh-dev/dsh-drag-and-drop/releases/tag/v0.1.6)
 [![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-0B7285?style=flat-square)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%5E20%20%7C%20%3E%3D22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](package.json)
 [![DSH profiles](https://img.shields.io/badge/DSH-Web-5B4CF0?style=flat-square)](cordis.patch.yml)
