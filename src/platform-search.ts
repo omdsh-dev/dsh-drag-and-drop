@@ -13,6 +13,8 @@ export interface PlatformSearchHost {
   readonly home: string
   commandExists(command: string): Promise<boolean>
   exec(command: string, args: readonly string[]): Promise<string>
+  /** Raw (undecoded) stdout — es.exe and the PowerShell fallback emit the console's legacy code page (e.g. GBK), not UTF-8. */
+  execBuffer(command: string, args: readonly string[]): Promise<Uint8Array>
   windowsDrives(): Promise<readonly string[]>
 }
 
@@ -34,6 +36,19 @@ const host: PlatformSearchHost = {
       windowsHide: true,
     })
     return stdout
+  },
+  async execBuffer(command, args) {
+    return new Promise<Uint8Array>((resolve, reject) => {
+      execFile(command, [...args], {
+        timeout: COMMAND_TIMEOUT_MS,
+        maxBuffer: 1024 * 1024,
+        windowsHide: true,
+        encoding: 'buffer',
+      }, (error, stdout) => {
+        if (error) reject(error)
+        else resolve(stdout)
+      })
+    })
   },
   async windowsDrives() {
     try {
@@ -74,11 +89,38 @@ function powershellLiteral(value: string): string {
   return `'${value.replaceAll("'", "''")}'`
 }
 
+/**
+ * es.exe and the PowerShell fallback print results using the console's active
+ * code page — GBK on Chinese/Japanese Windows, UTF-8 on modern systems. UTF-8
+ * decoding of GBK output mangles non-ASCII names (e.g. 新建.txt → �½�), which
+ * breaks the exact basename match in validateCandidates. The search term is
+ * known here, so decode both ways and keep the one that actually reproduces
+ * the requested file name in the results; ties (pure-ASCII output) prefer UTF-8.
+ */
+export function decodeWindowsOutput(raw: Uint8Array, name: string): string {
+  let best = ''
+  let bestScore = -1
+  for (const decoder of [new TextDecoder('utf-8'), new TextDecoder('gbk')]) {
+    const text = decoder.decode(raw)
+    const score = text
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .filter(line => line.split(/[\\/]/).at(-1) === name)
+      .length
+    if (score > bestScore) {
+      bestScore = score
+      best = text
+    }
+  }
+  return best
+}
+
 async function windowsSearch(name: string, runtime: PlatformSearchHost): Promise<string[]> {
-  for (const command of ['es.exe', 'Everything.exe']) {
-    if (!await runtime.commandExists(command)) continue
+  if (await runtime.commandExists('es.exe')) {
     try {
-      return lines(await runtime.exec(command, ['-n', String(PLATFORM_MAX_CANDIDATES), '-whole-filename', name]))
+      const raw = await runtime.execBuffer('es.exe', ['-n', String(PLATFORM_MAX_CANDIDATES), '-w', name])
+      return lines(decodeWindowsOutput(raw, name))
     } catch {
       // Fall through to PowerShell.
     }
@@ -91,7 +133,10 @@ async function windowsSearch(name: string, runtime: PlatformSearchHost): Promise
     `$roots | ForEach-Object { Get-ChildItem -LiteralPath $_ -Filter $name -File -Recurse -Force -ErrorAction SilentlyContinue }`,
     `| Select-Object -First ${String(PLATFORM_MAX_CANDIDATES)} -ExpandProperty FullName`,
   ].join(' ')
-  try { return lines(await runtime.exec('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script])) } catch { return [] }
+  try {
+    const raw = await runtime.execBuffer('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script])
+    return lines(decodeWindowsOutput(raw, name))
+  } catch { return [] }
 }
 
 export async function indexedSearch(name: string, runtime: PlatformSearchHost = host): Promise<string[]> {

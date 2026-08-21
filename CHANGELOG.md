@@ -4,6 +4,13 @@ All notable user-facing changes to dsh-drag-and-drop are documented in this file
 
 ## [Unreleased]
 
+### Fixed
+
+- Windows: es.exe is invoked with `-w` (match whole words) instead of the nonexistent `-whole-filename` switch, which made the Everything CLI print its help text and forced every drop onto the slow PowerShell fallback (issue #4).
+- Windows: es.exe and PowerShell results are decoded using the console's active code page (GBK on Chinese Windows) rather than assuming UTF-8, so non-ASCII file names such as `新建 文本文档 (3).txt` no longer arrive as mojibake and fail the exact basename match (issue #4).
+- Windows: only the CLI binary `es.exe` is probed; the GUI binary `Everything.exe` is no longer launched with command-line options, which could pop up a "command line options" window and never return results (issue #4).
+- Tests: the Windows platform-search tests now feed real GBK bytes and assert the `-w` switch instead of mocking es.exe output while asserting the invalid `-whole-filename` switch (issue #4).
+
 ## [0.1.5] - 2026-08-14
 
 ### Added
