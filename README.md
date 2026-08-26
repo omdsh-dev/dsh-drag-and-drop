@@ -67,7 +67,7 @@ For a local-path installation, run `add` again against the replacement checkout.
 ### Uninstall
 
 ```sh
-dsh plugin --profile web remove @omdsh-dev/dsh-drag-and-drop
+dsh plugin --profile web remove dsh-drag-and-drop
 ```
 
 The command removes the package from the profile and from `dsh.profile.bundles`. After uninstalling, restart the Web UI and hard-refresh the browser.

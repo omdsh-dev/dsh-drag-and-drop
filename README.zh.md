@@ -67,7 +67,7 @@ dsh plugin --profile web update github:omdsh-dev/dsh-drag-and-drop
 ### 卸载
 
 ```sh
-dsh plugin --profile web remove @omdsh-dev/dsh-drag-and-drop
+dsh plugin --profile web remove dsh-drag-and-drop
 ```
 
 命令会把包从 profile 和 `dsh.profile.bundles` 中移除。卸载后重启 Web UI 并硬刷新浏览器。

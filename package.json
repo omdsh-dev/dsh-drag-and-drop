@@ -1,5 +1,5 @@
 {
-  "name": "@omdsh-dev/dsh-drag-and-drop",
+  "name": "dsh-drag-and-drop",
   "version": "0.1.6",
   "description": "Drag local files into the DSH Web UI and insert their original filesystem paths without uploading or copying them",
   "keywords": [
